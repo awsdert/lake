@@ -28,7 +28,7 @@ for %%i in (%LUA_DIR%\src\*.c) do (
 if %%~nxi == lua.c ( call :nothing
 ) else (
 if %%~nxi == luac.c ( call :nothing
-) else call :compile_obj "%OBJ_LUA_DIR%\%%~nxi.o" "%%i" true
+) else call :compile_obj "%OBJ_LUA_DIR%\%%~nxi.o" "%%i" false
 )
 )
 

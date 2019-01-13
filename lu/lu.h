@@ -6,6 +6,8 @@ extern "C" {
 #ifdef _WIN32
 #include <windows.h>
 #include <shlwapi.h>
+#else
+#include <unistd.h>
 #endif
 #include <errno.h>
 #include <stdbool.h>

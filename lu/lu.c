@@ -404,6 +404,30 @@ int LuMkDir( lua_State *L ) {
 	lua_pushinteger(L,code);
 	return 1;
 }
+#ifdef _WIN32
+int execvpe( const char *cmd, const char *argv[], const char *envp[] ) {
+	int result = 0;
+	char *cmdl = NULL;
+	size_t cmdl_len = 0;
+	size_t i = 1;
+	size_t pos = 0;
+	size_t len;
+	while ( argv[i] && argv[i][0] ) {
+		cmdl_len += strlen( argv[i++] ) + 1;
+	}
+	if ( cmdl_len ) {
+		cmdl = calloc( cmdl_len + 1, 1 );
+		if ( !cmdl ) return ENOMEM;
+		for ( i = 1; argv[i] && argv[i][0]; ++i ) {
+			memcpy( &(cmdl[pos]), argv[i], (len = strlen(argv[i]) + 1));
+			pos += len;
+		}
+	}
+	result = CreateProcessA( cmd, cmdl, NULL, NULL, 0, 0, (void*)envp, NULL, NULL, NULL );
+	if ( cmdl ) free( cmdl );
+	return result;
+}
+#endif
 typedef struct STRVEC {
 	size_t count;
 	size_t node_size;
@@ -413,7 +437,7 @@ typedef struct STRVEC {
 	char *buff;
 	char **list;
 } STRVEC_t;
-int LuExecvpe( lua_State *L ) {
+int LuExecvp( lua_State *L ) {
 	size_t i = 0;
 	STRVEC_t arg = {0}, env = {0};
 	const char *path = NULL;
@@ -456,9 +480,8 @@ int LuExecvpe( lua_State *L ) {
 		snprintf( arg.list[i], arg.node_size, "%s", luaL_checkstring( L, -1 - i ) );
 		puts( arg.list[i] );
 	}
-	/* lua_pushinteger( L, execvp( path, arg.list, env.list ) ); */
-	lua_pushinteger( L, 1 );
-	puts( "execvp is commented out while I confirm the argv/envp are loaded properly" );
+	puts( "execvp() is about to be tried" );
+	lua_pushinteger( L, execvpe( path, arg.list, env.list ) );
 	free(buff);
 	return 1;
 }
@@ -512,6 +535,7 @@ static const luaL_Reg LuReg[] = {
 	{ "mountroot", LuMountRoot },
 	{ "access", LuAccess },
 	{ "system", LuSystem },
+	{ "execvp", LuExecvp },
 	{ "dirname", LuDirName },
 	{ "basename", LuBaseName },
 	{ "getcwd", LuGetCwd },

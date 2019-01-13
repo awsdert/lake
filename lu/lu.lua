@@ -1,3 +1,6 @@
+print("lu.lua running, trying Lake.execvp")
+print( tostring(
+	Lake.execvp( {exec="echo", { "success","2>1"}, { "PATH="..Lake.PATH } } ) ) )
 function printvec(name,vec)
 	for i,v in pairs(vec) do
 		print( name .. '["' .. tostring(i) .. '"] = "' .. tostring(v) .. '"' )
