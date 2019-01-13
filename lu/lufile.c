@@ -1,5 +1,5 @@
 #include "lu.h"
-// LuFile functions
+/* LuFile functions */
 static int LuFile_gc( lua_State *L ) {
 	LuFile_t *f = (LuFile_t*)luaL_checkudata(L,1,LUFILE_META);
 	if ( f ) {

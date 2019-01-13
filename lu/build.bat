@@ -1,7 +1,8 @@
 @echo off
 call :tmp_env
 set ALL=%~d0\Common
-call :chk_system
+if "%WINDIR%" == "" set WINDIR=%SYSTEMROOT%
+call :system64
 set LUA_DIR=O:\Common\lua-5.3.5
 set CPATH=%CPATH%;%LUA_DIR%\src
 set LFLAGS=-ansi %LFLAGS%
@@ -74,7 +75,7 @@ goto :eof
 set SBITS=32
 set ABITS=32
 set OBJ_DIR=.\obj32
-set SYSTEM32=%WINDIR%\System32
+::set SYSTEM32=%WINDIR%\System32
 call :mgw32
 goto :eof
 
@@ -82,14 +83,15 @@ goto :eof
 set SBITS=64
 set ABITS=32
 set OBJ_DIR=.\obj32
-set SYSTEM32=%WINDIR%\SysWOW64
+::set SYSTEM32=%WINDIR%\SysWOW64
 call :mgw32
 goto :eof
 
 :system64
 set SBITS=64
+set ABITS=64
 set OBJ_DIR=.\obj64
-set SYSTEM32=%WINDIR%\System32
+::set SYSTEM32=%WINDIR%\System32
 call :mgw64
 goto :eof
 
@@ -107,11 +109,10 @@ set X_DISTRO=nuwen
 set LD=gcc
 set CC=gcc
 set CC_DIR=%ALL%\MinGW
-set PATH=%SYSTEM32%\Wbem;%WINDIR%;%SYSTEM32%
 if exist "%CC_DIR%\git" set PATH=%CC_DIR%\git\bin;%PATH%
 set PATH=%CC_DIR%\bin;%PATH%
 set CPATH=%CC_DIR%\include;%CC_DIR%\include\freetype
-set LPATH=%CC_DIR%\lib;%PATH%
+set LPATH=
 set _FLAGS=-Wall -Werror -mconsole -mwindows -mwin32
 set LFLAGS=%_FLAGS% %LFLAGS%
 set CFLAGS=%_FLAGS% %CFLAGS%
@@ -168,8 +169,7 @@ set TEMP=%TTEMP%
 set PATH=%TPATH%
 goto :eof
 
-:chk_system
-if "%WINDIR%" == "" set WINDIR=%SYSTEMROOT%
+:system_chk
 if "%PROCESSOR_ARCHITECTURE%" == "x86" (
 	if not defined PROCESSOR_ARCHITEW6432 (
 		call :system32
