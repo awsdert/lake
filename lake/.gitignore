@@ -1,0 +1,10 @@
+*.a
+*.o
+*.so
+*.dll
+*.lib
+*.obj
+*.out
+*.exe
+*.app
+obj*/
