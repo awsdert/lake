@@ -1,5 +1,5 @@
-#include "lake.h"
-const char LakeScript[] = "\n\
+#include "lu.h"
+const char LuScript[] = "\n\
 --[[ Lua will report the line number \n\
  relative to the string so placing at the top\n\
  simplifies searching for errors --]]\n\
@@ -16,55 +16,55 @@ function fault(msg,lvl)\n\
 	print(debug.traceback())\n\
 	error(msg,lvl + 1)\n\
 end\n\
-getcwd = Lake.getcwd\n\
-mkdir = Lake.mkdir\n\
-access = Lake.access\n\
+getcwd = Lu.getcwd\n\
+mkdir = Lu.mkdir\n\
+access = Lu.access\n\
 function exists(path) return (access(path,0)==0) end\n\
-thedir = Lake.dirname\n\
-thefile = Lake.basename\n\
+thedir = Lu.dirname\n\
+thefile = Lu.basename\n\
 function theext(path)\n\
 	local ext = path:match('[^.]*$')\n\
 	if not ext then return '' end\n\
 	return '.' .. ext\n\
 end\n\
-setenv = Lake.setenv\n\
-getenv = Lake.getenv\n\
-Lake.PATH = getenv('PATH')\n\
--- Make sure we can use system('cd ../ && lake')\n\
-if not Lake.PATH:match('lake') then\n\
-	local d = thedir(Lake.launchpath())\n\
-	if not d or d == '' then d = Lake.launchpath() end\n\
-	d = tostring(d) .. ';' .. Lake.PATH\n\
+setenv = Lu.setenv\n\
+getenv = Lu.getenv\n\
+Lu.PATH = getenv('PATH')\n\
+-- Make sure we can use system('cd ../ && lu')\n\
+if not Lu.PATH:match('lu') then\n\
+	local d = thedir(Lu.launchpath())\n\
+	if not d or d == '' then d = Lu.launchpath() end\n\
+	d = tostring(d) .. ';' .. Lu.PATH\n\
 	setenv(d)\n\
 end\n\
 -- Free memory\n\
-Lake.PATH = niL\n\
-Lake.nsys = {\n\
-	bits = Lake.bitsof('*'),\n\
+Lu.PATH = niL\n\
+Lu.nsys = {\n\
+	bits = Lu.bitsof('*'),\n\
 	isWindows = ((getenv('OS') or ''):match('^Windows')),\n\
 }\n\
-if Lake.nsys.isWindows then\n\
-	Lake.nsys.shset = 'set '\n\
-	Lake.nsys.arch = getenv('PROCESSOR_ARCHITECTURE')\n\
-	Lake.nsys.exe_ext = '.exe'\n\
-	Lake.nsys.dll_pfx = ''\n\
-	Lake.nsys.dll_ext = '.dll'\n\
-	Lake.nsys.flags = ' -mconsole -mwindows -mwin32' ..\n\
-	  conditional(Lake.nsys.bits==64,' -m64 -D _WIN64','-m32')\n\
+if Lu.nsys.isWindows then\n\
+	Lu.nsys.shset = 'set '\n\
+	Lu.nsys.arch = getenv('PROCESSOR_ARCHITECTURE')\n\
+	Lu.nsys.exe_ext = '.exe'\n\
+	Lu.nsys.dll_pfx = ''\n\
+	Lu.nsys.dll_ext = '.dll'\n\
+	Lu.nsys.flags = ' -mconsole -mwindows -mwin32' ..\n\
+	  conditional(Lu.nsys.bits==64,' -m64 -D _WIN64','-m32')\n\
 else\n\
-	Lake.nsys.shset = 'export '\n\
-	Lake.nsys.arch = io.popen'uname -m':read'*a'\n\
-	Lake.nsys.exe_ext = '.sh'\n\
-	Lake.nsys.dll_pfx = 'lib'\n\
-	Lake.nsys.dll_ext = '.so'\n\
-	Lake.nsys.flags = ''\n\
+	Lu.nsys.shset = 'export '\n\
+	Lu.nsys.arch = io.popen'uname -m':read'*a'\n\
+	Lu.nsys.exe_ext = '.sh'\n\
+	Lu.nsys.dll_pfx = 'lib'\n\
+	Lu.nsys.dll_ext = '.so'\n\
+	Lu.nsys.flags = ''\n\
 end\n\
 -- Eg: env,prv,pfx=setenvs(tmp) system(pfx .. cmd) setenvs(prv)\n\
 -- or system(cmd,tmpenv)\n\
 function setenvs( env )\n\
 	local prv = {}\n\
 	local pfx = ''\n\
-	local set = Lake.nsys.shset\n\
+	local set = Lu.nsys.shset\n\
 	if not env then\n\
 		return {}, {}, ''\n\
 	end\n\
@@ -83,17 +83,17 @@ function setsep(path)\n\
 		fault('setsep(path) path should be a string!',2)\n\
 		return ''\n\
 	end\n\
-	return path:gsub('/',Lake.dirsep)\n\
+	return path:gsub('/',Lu.dirsep)\n\
 end\n\
 function system(command,tmpenv)\n\
 	local name = os.tmpname() .. '_txt'\n\
 	local env,prv,pfx = setenvs(tmpenv)\n\
-	name = Lake.getcwd() .. '/' .. name:gsub('[/\\\\]','_')\n\
+	name = Lu.getcwd() .. '/' .. name:gsub('[/\\\\]','_')\n\
 	--command = pfx .. command .. ' > \"' .. setsep(name) .. '\"'\n\
 	command = pfx .. command .. '2>1'\n\
 	print( command )\n\
-	local r = Lake.system( command )\n\
-	if (Lake.access(name,0)~=0) then setenv(prv) return r end\n\
+	local r = Lu.system( command )\n\
+	if (Lu.access(name,0)~=0) then setenv(prv) return r end\n\
 	for line in io.lines(name) do\n\
 		print(line)\n\
 	end\n\
@@ -108,9 +108,9 @@ function replace(str,text,with)\n\
 	return str:gsub(literalize(text),with)\n\
 end\n\
 function iwildcard(path)\n\
-	local dpath = Lake.dirname(path)\n\
+	local dpath = Lu.dirname(path)\n\
 	if not dpath or dpath == '' or dpath == '.' then dpath = './' end\n\
-	local dir = LakeDir(dpath)\n\
+	local dir = LuDir(dpath)\n\
 	if not dir then\n\
 		fault( 'iwildcard() ' .. dpath .. ' not opened!' )\n\
 		return function() return nil end\n\

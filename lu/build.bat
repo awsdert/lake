@@ -9,12 +9,12 @@ set CFLAGS=-ansi %CFLAGS%
 call :paths
 set OBJS=
 set OBJ_LUA_DIR=%OBJ_DIR%\lua
-set OUT_DIR=%ALL%\lake
-if %ABITS% == 64 set OUT_DIR=%OUT_DIR%\lake64
-set OUT_EXE=%OUT_DIR%\lake%SBITS%.exe
+set OUT_DIR=%ALL%\lu
+if %ABITS% == 64 set OUT_DIR=%OUT_DIR%\lu64
+set OUT_EXE=%OUT_DIR%\lu%SBITS%.exe
 
 @echo on
-@echo Compiling Lake Objects
+@echo Compiling Lu Objects
 @echo off
 call :chk_dir "%OBJ_DIR%"
 for %%i in (.\*.c) do call :compile_obj "%OBJ_DIR%\%%~nxi.o" "%%i" true
@@ -32,11 +32,11 @@ if %%~nxi == luac.c ( call :nothing
 )
 
 @echo on
-@echo Compiling Lake Executable
+@echo Compiling Lu Executable
 @echo off
 call :chk_dir "%OUT_DIR%"
 @echo on
-%LD% %LFLAGS% -o "%OUT_DIR%\lake%SBITS%.exe" %OBJS%
+%LD% %LFLAGS% -o "%OUT_DIR%\lu%SBITS%.exe" %OBJS%
 @echo PATH=%PATH%
 @echo CPATH=%CPATH%
 @echo LIBRARY_PATH=%LIBRARY_PATH%

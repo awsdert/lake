@@ -28,9 +28,9 @@ function MinGW_BatchLibrary(version,rootdir)
 	mgw.cflags = ''
 	mgw.bflags = ''
 	mgw.set_paths = function(shell)
-		if Lake.access(mgw.bin .. '/gcc.exe') ~= 0 then
+		if Lu.access(mgw.bin .. '/gcc.exe') ~= 0 then
 			return nil
-		elseif Lake.access(mgw.root .. '/git/cmd/git.exe') == 0 then
+		elseif Lu.access(mgw.root .. '/git/cmd/git.exe') == 0 then
 			shell.env.PATH = mgw.root .. '/git/cmd;' .. shell.env.PATH
 		end
 		shell.env.X_DISTRO = "nuwen"
@@ -56,10 +56,10 @@ function MinGW_BatchLibrary(version,rootdir)
 	end
 	return mgw
 end
-local mingw32 = MinGW_BatchLibrary( 32, Lake.mountroot() .. "/Common/MinGW" )
-local mingw64 = MinGW_BatchLibrary( 64, Lake.mountroot() .. "/Common/MinGW64" )
+local mingw32 = MinGW_BatchLibrary( 32, Lu.mountroot() .. "/Common/MinGW" )
+local mingw64 = MinGW_BatchLibrary( 64, Lu.mountroot() .. "/Common/MinGW64" )
 function LuaLibrary(pfx,version)
-	local lua = Library(version,Lake.mountroot() .. "/Common/lua" .. pfx .. version)
+	local lua = Library(version,Lu.mountroot() .. "/Common/lua" .. pfx .. version)
 	lua.lib = lua.root
 	lua.bin = lua.root
 	lua.libs.lua = setsep(lua.root .. "/lua" .. version)
@@ -93,9 +93,9 @@ local lua53 = LuaLibrary("",53)
 local lua32_53 = LuaLibrary("32-",53)
 local lua64_53 = LuaLibrary("64-",53)
 function ismodified(src,dst)
-	if (Lake.access(dst)) == 0 then
-		local s = Lake.stat(src)
-		local d = Lake.stat(dst)
+	if (Lu.access(dst)) == 0 then
+		local s = Lu.stat(src)
+		local d = Lu.stat(dst)
 		if d.st_mtime == s.st_mtime then
 			return false
 		end
@@ -104,24 +104,24 @@ function ismodified(src,dst)
 end
 local folders = {
 	out = {
-		path = Lake.mountroot() .. "/Common/",
+		path = Lu.mountroot() .. "/Common/",
 		sub = {}
 	}, obj = {
 		path = "obj/",
 		sub  = {}
 	}
 }
-folders.out.sub.lake = folders.out.path ..  "lake/"
-folders.out.sub.lake32 = folders.out.path ..  "lake32/"
-folders.out.sub.lake64 = folders.out.path ..  "lake64/"
+folders.out.sub.lu = folders.out.path ..  "lu/"
+folders.out.sub.lu32 = folders.out.path ..  "lu32/"
+folders.out.sub.lu64 = folders.out.path ..  "lu64/"
 folders.obj.sub.win16 = folders.obj.path .. "win16/"
 folders.obj.sub.win32 = folders.obj.path .. "win32/"
 folders.obj.sub.win64 = folders.obj.path .. "win64/"
-local bits = Lake.bitsof("*")
+local bits = Lu.bitsof("*")
 local build_cc = 'gcc --pass-exit-codes -Wall'
 local debug_cc = build_cc .. ' -ggdb'
 local objs = {
-	{ src = "lake.c" }
+	{ src = "lu.c" }
 }
 function olist(prepath)
 	local l = ""
@@ -133,10 +133,10 @@ function olist(prepath)
 	return l
 end
 local libs = {
-	lua = { dst = folders.out.sub.lake .. "lua53.so", src = lua53.root .. "/lua53.so" },
-	lua16 = { dst = folders.out.sub.lake .. "lua53.dll", src = lua53.root .. "/lua53.dll" },
-	lua32 = { dst = folders.out.sub.lake32 .. "lua53.dll", src = lua32_53.root .. "/lua53.dll" },
-	lua64 = { dst = folders.out.sub.lake64 .. "lua53.dll", src = lua64_53.root .. "/lua53.dll" }
+	lua = { dst = folders.out.sub.lu .. "lua53.so", src = lua53.root .. "/lua53.so" },
+	lua16 = { dst = folders.out.sub.lu .. "lua53.dll", src = lua53.root .. "/lua53.dll" },
+	lua32 = { dst = folders.out.sub.lu32 .. "lua53.dll", src = lua32_53.root .. "/lua53.dll" },
+	lua64 = { dst = folders.out.sub.lu64 .. "lua53.dll", src = lua64_53.root .. "/lua53.dll" }
 }
 local shells = {
 	sh = {
@@ -169,8 +169,8 @@ mingw64 = nil
 lua32_53 = nil
 lua64_53 = nil
 local apps = {
-	lake = {
-		path = folders.out.sub.lake .. "lake.sh",
+	lu = {
+		path = folders.out.sub.lu .. "lu.sh",
 		prepath = folders.obj.path,
 		cc = build_cc,
 		cflags = shells.sh.cflags,
@@ -179,8 +179,8 @@ local apps = {
 		objs = olist(folders.obj.path),
 		env = shells.sh.env
 	},
-	lake16 = {
-		path = folders.out.sub.lake .. "lake.cmd",
+	lu16 = {
+		path = folders.out.sub.lu .. "lu.cmd",
 		prepath = folders.obj.path,
 		cc = build_cc,
 		cflags = shells.sh16.cflags,
@@ -189,8 +189,8 @@ local apps = {
 		objs = olist(folders.obj.path),
 		env = shells.sh16.env
 	},
-	lake32 = {
-		path = folders.out.sub.lake32 .. "lake32.exe",
+	lu32 = {
+		path = folders.out.sub.lu32 .. "lu32.exe",
 		prepath = folders.obj.sub.win32,
 		cc = build_cc,
 		cflags = shells.sh32.cflags,
@@ -199,8 +199,8 @@ local apps = {
 		objs = olist(folders.obj.sub.win32),
 		env = shells.sh32.env
 	},
-	lake64 = {
-		path = folders.out.sub.lake64 .. "lake64.exe",
+	lu64 = {
+		path = folders.out.sub.lu64 .. "lu64.exe",
 		prepath = folders.obj.sub.win64,
 		cc = build_cc,
 		cflags = shells.sh64.cflags,
@@ -209,8 +209,8 @@ local apps = {
 		objs = olist(folders.obj.sub.win64),
 		env = shells.sh64.env
 	},
-	dlake = {
-		path = folders.out.sub.lake .. "dlake.sh",
+	dlu = {
+		path = folders.out.sub.lu .. "dlu.sh",
 		prepath = folders.obj.path .. 'd',
 		cc = debug_cc,
 		cflags = shells.sh.cflags,
@@ -219,8 +219,8 @@ local apps = {
 		objs = olist(folders.obj.path .. 'd'),
 		env = shells.sh.env
 	},
-	dlake16 = {
-		path = folders.out.sub.lake .. "dlake.cmd",
+	dlu16 = {
+		path = folders.out.sub.lu .. "dlu.cmd",
 		prepath = folders.obj.path .. 'd',
 		cc = debug_cc,
 		cflags = shells.sh16.cflags,
@@ -229,8 +229,8 @@ local apps = {
 		objs = olist(folders.obj.path .. 'd'),
 		env = shells.sh16.env
 	},
-	dlake32 = {
-		path = folders.out.sub.lake32 .. "dlake32.exe",
+	dlu32 = {
+		path = folders.out.sub.lu32 .. "dlu32.exe",
 		prepath = folders.obj.sub.win32 .. 'd',
 		cc = debug_cc,
 		cflags = shells.sh32.cflags,
@@ -239,8 +239,8 @@ local apps = {
 		objs = olist(folders.obj.sub.win32 .. 'd'),
 		env = shells.sh32.env
 	},
-	dlake64 = {
-		path = folders.out.sub.lake64 .. "dlake64.exe",
+	dlu64 = {
+		path = folders.out.sub.lu64 .. "dlu64.exe",
 		prepath = folders.obj.sub.win64 .. 'd',
 		cc = debug_cc,
 		cflags = shells.sh64.cflags,
@@ -252,13 +252,13 @@ local apps = {
 }
 local T = {}
 T.directories = function(list)
-	local r, path, mk = Lake.mkdir
+	local r, path, mk = Lu.mkdir
 	for p,obj in pairs(list) do
 		if type(obj) == "table" then path = obj.path
 		else path = obj end
 		if exists(path) == false then
 			echo("mkdir() " .. path)
-			r = Lake.mkdir(path)
+			r = Lu.mkdir(path)
 			if r ~= 0 then fault("Directory " .. path ..
 				"couldn't be made with result " .. tostring(r) .. "!")
 				return r end
@@ -273,7 +273,7 @@ end
 T.libraries = function(bin)
 	local r = T.directories(folders)
 	if r ~= 0 then fault("T.directories() returned" .. tostring(r) .. "!") return r end
-	local cp = Lake.copy
+	local cp = Lu.copy
 	for l,lib in pairs(bin.libs) do
 		if ismodified(lib.src,lib.dst) == true then
 			print('copy() ' .. lib.src .. ' > ' .. lib.dst)
@@ -300,12 +300,12 @@ T.objects = function(bin)
 	end
 	return 0
 end
-local lake_exe = 'lake' .. bits
-local lake_same = (((Lake.launcharg(0)):match(lake_exe)) ~= nil)
-local lake_src = lake_exe ..  '/' .. lake_exe
-local lake_dst = lake_exe ..  '/lake'
-local dlake_src = lake_exe ..  '/d' .. lake_exe
-local dlake_dst = lake_exe ..  '/dlake'
+local lu_exe = 'lu' .. bits
+local lu_same = (((Lu.launcharg(0)):match(lu_exe)) ~= nil)
+local lu_src = lu_exe ..  '/' .. lu_exe
+local lu_dst = lu_exe ..  '/lu'
+local dlu_src = lu_exe ..  '/d' .. lu_exe
+local dlu_dst = lu_exe ..  '/dlu'
 T.binaries = function(list)
 	local r, env, prv, pfx
 	for b,bin in pairs(list) do
@@ -316,10 +316,10 @@ T.binaries = function(list)
 			fault("T.objects() returned " .. tostring(r) .. "!")
 			return r
 		end
-		-- Prevents attempted overriding of currently running lake
-		if lake_same == true then
-			bin.path = bin.path:gsub(lake_src,lake_dst)
-			bin.path = bin.path:gsub(dlake_src,dlake_dst)
+		-- Prevents attempted overriding of currently running lu
+		if lu_same == true then
+			bin.path = bin.path:gsub(lu_src,lu_dst)
+			bin.path = bin.path:gsub(dlu_src,dlu_dst)
 		end
 		r = system(pfx .. bin.cc .. bin.bflags .. bin.objs .. ' -o ' .. bin.path)
 		setenvs(prv)
@@ -332,13 +332,13 @@ T.binaries = function(list)
 end
 T.binaries({
 --
-apps['lake' .. bits],
-apps['dlake' .. bits]
+apps['lu' .. bits],
+apps['dlu' .. bits]
 --]]
 --[[
-apps['lake32'],
-apps['dlake32'],
-apps['lake64'],
-apps['dlake64'],
+apps['lu32'],
+apps['dlu32'],
+apps['lu64'],
+apps['dlu64'],
 --]]
 })

@@ -1,5 +1,5 @@
-#ifndef LAKE_H
-#define LAKE_H
+#ifndef LU_H
+#define LU_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,20 +18,20 @@ extern "C" {
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
-extern const char LakeScript[];
+extern const char LuScript[];
 
-int Lake_register( lua_State *L );
-int LakeDir_register( lua_State *L );
-int LakeFile_register( lua_State *L );
-int LakeRegisterClass( lua_State *L, const char *name, const luaL_Reg *methods );
+int Lu_register( lua_State *L );
+int LuDir_register( lua_State *L );
+int LuFile_register( lua_State *L );
+int LuRegisterClass( lua_State *L, const char *name, const luaL_Reg *methods );
 
 int bail_bootup( int code, bool useExit, char *msg );
 int bail_script( lua_State *L, int code, bool useExit, char *msg );
 
-char const * const lake_getstring( lua_State *L, int pos );
-char const * const lake_getlstring( lua_State *L, int pos, size_t *len );
-lua_Number lake_getnumber( lua_State *L, int pos );
-lua_Integer lake_getinteger( lua_State *L, int pos );
+char const * const lu_getstring( lua_State *L, int pos );
+char const * const lu_getlstring( lua_State *L, int pos, size_t *len );
+lua_Number lu_getnumber( lua_State *L, int pos );
+lua_Integer lu_getinteger( lua_State *L, int pos );
 
 void luat_setcfunctionfield(
 	lua_State *L, char const * const key, lua_CFunction val );
@@ -51,23 +51,23 @@ void luat_setstringfield(
 #define unsetenv(name) SetEnvironmentVariable(name,NULL)
 #endif
 
-int lake_returnnil( lua_State *L, int returncount, const char *msg );
-int lake_returnstring( lua_State *L, int returncount, const char *msg, const char *val );
-int lake_returnnumber( lua_State *L, int returncount, const char *msg, lua_Number val );
-int lake_returninteger( lua_State *L, int returncount, const char *msg, lua_Integer val );
+int lu_returnnil( lua_State *L, int returncount, const char *msg );
+int lu_returnstring( lua_State *L, int returncount, const char *msg, const char *val );
+int lu_returnnumber( lua_State *L, int returncount, const char *msg, lua_Number val );
+int lu_returninteger( lua_State *L, int returncount, const char *msg, lua_Integer val );
 
-typedef struct _LakeFile {
+typedef struct _LuFile {
 	FILE *file;
 	char *path;
 	char buff[BUFSIZ];
-} LakeFile_t;
-#define LAKEFILE_META "Lake.FILE"
-typedef struct _LakeDir {
+} LuFile_t;
+#define LUFILE_META "Lu.FILE"
+typedef struct _LuDir {
 	DIR *dir;
 	struct dirent *ent;
 	char *path;
-} LakeDir_t;
-#define LAKEDIR_META "Lake.meta_DIR"
+} LuDir_t;
+#define LUDIR_META "Lu.meta_DIR"
 #ifdef __cplusplus
 }
 #endif
