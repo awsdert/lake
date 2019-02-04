@@ -2,6 +2,8 @@
 call :tmp_env
 set ALL=%~d0\Common
 if "%WINDIR%" == "" set WINDIR=%SYSTEMROOT%
+OBJ_DIR=.\objs
+call :chk_dir %OBJ_DIR%
 call :system64
 set LUA_DIR=O:\Common\lua-5.3.5
 set CPATH=%CPATH%;%LUA_DIR%\src
@@ -74,7 +76,7 @@ goto :eof
 :system32
 set SBITS=32
 set ABITS=32
-set OBJ_DIR=.\obj32
+set OBJ_DIR=%OBJ_DIR%\mgw32
 ::set SYSTEM32=%WINDIR%\System32
 call :mgw32
 goto :eof
@@ -82,7 +84,7 @@ goto :eof
 :system6432
 set SBITS=64
 set ABITS=32
-set OBJ_DIR=.\obj32
+set OBJ_DIR=%OBJ_DIR%\mgw32
 ::set SYSTEM32=%WINDIR%\SysWOW64
 call :mgw32
 goto :eof
@@ -90,7 +92,7 @@ goto :eof
 :system64
 set SBITS=64
 set ABITS=64
-set OBJ_DIR=.\obj64
+set OBJ_DIR=%OBJ_DIR%\mgw64
 ::set SYSTEM32=%WINDIR%\System32
 call :mgw64
 goto :eof
@@ -120,14 +122,14 @@ call :paths
 goto :eof
 
 :mgw32
-set ARCH=amd64
+set ARCH=i386
 set LFLAGS=-m32
 set CFLAGS=-m32
 call :mgw
 goto :eof
 
 :mgw64
-set ARCH=i386
+set ARCH=amd64
 set LFLAGS=-m64
 set CFLAGS=-m64
 call :mgw

@@ -28,7 +28,7 @@ static int LuDir_tostring( lua_State *L ) {
 	char addr[ADDR_BIT] = {0};
 	LuDir_t *d = (LuDir_t*)luaL_checkudata(L,1,LUDIR_META);
 	if ( !d ) return lu_returnstring( L, 1, NULL, "LuDir Object");
-	snprintf(addr, ADDR_BIT,"%p",d);
+	sprintf(addr,"%p",d);
 	if ( d->dir )
 		lua_pushfstring( L, "LuDir: 0x%s; \"%s\"", addr, d->path );
 	else lua_pushfstring( L, "LuDir: 0x%s", addr );

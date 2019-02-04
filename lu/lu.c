@@ -50,35 +50,30 @@ static int option_file( lua_State *L, char *opt, char *val ) {
 static int option_execute( lua_State *L, char *opt, char *val ) {
 	return bail_script( L, luaL_dostring( L, val ), 0, "Lua Error =" );
 }
+#define ENV_NAME_MAX 255
+#define ENV_TEXT_MAX (ENV_NAME_MAX+1+LINE_MAX)
 static int option_define( lua_State *L, char *opt, char *val ) {
-	char name[PATH_MAX] = {0};
-	char value[2] = "1";
-	int result = 0;
-	char *dec = name;
+	char key[ENV_NAME_MAX] = "";
+	char one[5] = "'1'";
+	char *dec = key;
 	char *def = strchr( val, '=' );
 	size_t len = 0;
 	if ( !def ) {
 		dec = val;
-		len = strlen(val);
-		def = value;
+		def = one;
 	}
 	else {
-		dec = name;
-		len = (size_t)((uintptr_t)def - (uintptr_t)val);
-		if ( len >= PATH_MAX )
-			return bail_bootup( ENOMEM, 0, "Name length >= PATH_MAX, error:");
-		memcpy( name, val, len );
+		len = ((uintptr_t)def) - ((uintptr_t)val);
+		if ( len > ENV_NAME_MAX ) return ENAMETOOLONG;
+		memcpy( key, val, len );
 		++def;
 	}
-	result = setenv( dec, def, 1 );
-	if ( result != 0 ) bail_bootup( errno, 0, "Name Error, errno =" );
 	/* Also set via Lua itself */
 	lua_pushstring( L, def );
 	lua_setglobal( L, dec );
 	return 0;
 }
 static int option_undefine( lua_State *L, char *opt, char *val ) {
-	unsetenv( val );
 	/* Also unset in Lua */
 	lua_pushnil( L );
 	lua_setglobal( L, val );
@@ -189,6 +184,11 @@ lua_Integer lu_getinteger( lua_State *L, int pos ) {
 		return lua_tointeger(L,pos);
 	return 0;
 }
+bool lu_getboolean( lua_State *L, int pos ) {
+	if ( lua_isboolean(L,pos) )
+		return lua_toboolean(L,pos);
+	return false;
+}
 int Lu_tostring( lua_State *L ) {
 	lua_pushstring( L, "Lu{}" );
 	return 1;
@@ -295,16 +295,25 @@ int LuDirName( lua_State *L ) {
 }
 int LuMountRoot( lua_State *L ) {
 	/* Longest possible mount root */
-	char root[BUFSIZ] = {0};
-	getcwd( root, BUFSIZ );
+	char root[LINE_MAX] = {0};
+	getcwd( root, LINE_MAX );
 #ifdef _WIN32
-	*(strchr( root, '/' )) = '\0';
-#else
-	while ( !ismount( root ) ) {
-		dirname( root );
-	}
-#endif
+	char D = (strchr( root, ':' );
+	*(++D) = 0;
 	lua_pushstring(L,root);
+#else
+	struct stat m = {0};
+	do {
+		if ( stat( root, &m ) == 0 ) {
+			break;
+		}
+		if ( !(S_ISDIR(m.st_mode)) ) {
+			lua_pushstring( L, root );
+			return 1;
+		}
+	} while ( dirname( root ) );
+	lua_pushnil(L);
+#endif
 	return 1;
 }
 int LuAccess( lua_State *L ) {
@@ -381,9 +390,10 @@ int cp(const char *src, const char *dst, bool overwrite)
 int LuCopy( lua_State *L ) {
 	char const * const src = lua_tostring(L,1);
 	char const * const dst = lua_tostring(L,2);
+	bool overwrite = lu_getboolean(L,3);
 	int code = 0;
 #ifdef _WIN32
-	if ( CopyFileA( src, dst, TRUE ) == TRUE )
+	if ( CopyFileA( src, dst, overwrite ? TRUE : FALSE ) == TRUE )
 		goto LuCopy_done;
 	switch ( GetLastError() ) {
 	case ERROR_PATH_NOT_FOUND:
@@ -392,7 +402,7 @@ int LuCopy( lua_State *L ) {
 	}
 	LuCopy_done:
 #else
-	code = cp( src, dst );
+	code = cp( src, dst, overwrite );
 #endif
 	lua_pushinteger( L, code );
 	return 1;
@@ -400,12 +410,12 @@ int LuCopy( lua_State *L ) {
 int LuMkDir( lua_State *L ) {
 	char const * const path = lu_getstring(L,1);
 	int code = 1;
-	if ( path ) code = mkdir(path);
+	if ( path ) code = mkdir(path,0777);
 	lua_pushinteger(L,code);
 	return 1;
 }
 #ifdef _WIN32
-int execvpe( const char *cmd, const char *argv[], const char *envp[] ) {
+int execve( const char *cmd, const char *argv[], const char *envp[] ) {
 	int result = 0;
 	char *cmdl = NULL;
 	size_t cmdl_len = 0;
@@ -437,7 +447,7 @@ typedef struct STRVEC {
 	char *buff;
 	char **list;
 } STRVEC_t;
-int LuExecvp( lua_State *L ) {
+int LuExecve( lua_State *L ) {
 	size_t i = 0;
 	STRVEC_t arg = {0}, env = {0};
 	const char *path = NULL;
@@ -468,54 +478,22 @@ int LuExecvp( lua_State *L ) {
 	env.list = (char**)(&(env.buff[env.buff_size]));
 	lua_gettable( L, 3 );
 	for ( i = 0; i < env.count; ++i ) {
-		snprintf( env.list[i], env.node_size, "%s", luaL_checkstring( L, -2 - i ) );
+		strncpy( env.list[i], luaL_checkstring( L, -2 - i ), env.node_size );
 		puts( env.list[i] );
 	}
 	arg.buff = buff;
 	arg.list = (char**)(&(buff[arg.buff_size]));
 	arg.list[0] = buff;
-	snprintf( arg.list[0], arg.node_size, "%s", path );
+	strncpy( arg.list[0], path, arg.node_size );
 	lua_gettable( L, 2 );
 	for ( i = 1; i < arg.count; ++i ) {
-		snprintf( arg.list[i], arg.node_size, "%s", luaL_checkstring( L, -1 - i ) );
+		strncpy( arg.list[i], luaL_checkstring( L, -1 - i ), arg.node_size );
 		puts( arg.list[i] );
 	}
 	puts( "execvp() is about to be tried" );
-	lua_pushinteger( L, execvpe( path, arg.list, env.list ) );
+	lua_pushinteger( L, execve( path, arg.list, env.list ) );
 	free(buff);
 	return 1;
-}
-int LuGetEnv( lua_State *L ) {
-	char const * const key = lu_getstring(L,1);
-#ifdef _WIN32
-	DWORD bytes = GetEnvironmentVariable( key, NULL, 0 );
-	char *val = calloc( bytes, 1 );
-	if ( !val ) {
-		lua_pushnil( L );
-		return 1;
-	}
-	GetEnvironmentVariable( key, val, bytes );
-	lua_pushstring( L, val );
-	free( val );
-#else
-	char const * const val = getenv( key );
-	if ( val ) lua_pushstring( L, val );
-	else lua_pushnil( L );
-#endif
-	return 1;
-}
-
-int LuSetEnv( lua_State *L ) {
-	char const * const key = lu_getstring(L,1);
-	char const * const val = lu_getstring(L,2);
-	int code =
-#ifdef _WIN32
-		SetEnvironmentVariable( key, val );
-#else
-		val ? setenv(key,val) : unsetenv( key );
-#endif
-	lua_pushinteger( L, code );
-	return 2;
 }
 
 int LuGetCwd( lua_State *L ) {
@@ -528,14 +506,12 @@ static const luaL_Reg LuReg[] = {
 	{ "__tostring", Lu_tostring },
 	{ "sizeof", LuSizeof },
 	{ "bitsof", LuBitsof },
-	{ "getenv", LuGetEnv },
-	{ "setenv", LuSetEnv },
 	{ "launcharg", LuLaunchArg },
 	{ "launchpath", LuLaunchPath },
 	{ "mountroot", LuMountRoot },
 	{ "access", LuAccess },
 	{ "system", LuSystem },
-	{ "execvp", LuExecvp },
+	{ "execve", LuExecve },
 	{ "dirname", LuDirName },
 	{ "basename", LuBaseName },
 	{ "getcwd", LuGetCwd },

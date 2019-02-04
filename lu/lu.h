@@ -7,7 +7,12 @@ extern "C" {
 #include <windows.h>
 #include <shlwapi.h>
 #else
+#include <limits.h>
 #include <unistd.h>
+#include <string.h>
+#include <libgen.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #endif
 #include <errno.h>
 #include <stdbool.h>
@@ -17,9 +22,19 @@ extern "C" {
 #include <stdio.h>
 #include <sys/stat.h>
 #include <dirent.h>
+
+#ifndef LINE_MAX
+#define LINE_MAX 8191
+#endif
+
+#ifndef PATH_MAX
+#define PATH_MAX LINE_MAX
+#endif
+
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+
 extern const char LuScript[];
 
 int Lu_register( lua_State *L );
@@ -34,6 +49,7 @@ char const * const lu_getstring( lua_State *L, int pos );
 char const * const lu_getlstring( lua_State *L, int pos, size_t *len );
 lua_Number lu_getnumber( lua_State *L, int pos );
 lua_Integer lu_getinteger( lua_State *L, int pos );
+bool lu_getboolean( lua_State *L, int pos );
 
 void luat_setcfunctionfield(
 	lua_State *L, char const * const key, lua_CFunction val );

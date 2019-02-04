@@ -17,6 +17,7 @@ function fault(msg,lvl)\n\
 	error(msg,lvl + 1)\n\
 end\n\
 getcwd = Lu.getcwd\n\
+execve = Lu.execve\n\
 mkdir = Lu.mkdir\n\
 access = Lu.access\n\
 function exists(path) return (access(path,0)==0) end\n\
@@ -27,8 +28,7 @@ function theext(path)\n\
 	if not ext then return '' end\n\
 	return '.' .. ext\n\
 end\n\
-setenv = Lu.setenv\n\
-getenv = Lu.getenv\n\
+getenv = os.getenv\n\
 Lu.PATH = getenv('PATH')\n\
 -- Make sure we can use system('cd ../ && lu')\n\
 if not Lu.PATH:match('lu') then\n\
@@ -59,21 +59,19 @@ else\n\
 	Lu.nsys.dll_ext = '.so'\n\
 	Lu.nsys.flags = ''\n\
 end\n\
--- Eg: env,prv,pfx=setenvs(tmp) system(pfx .. cmd) setenvs(prv)\n\
+-- Eg: pfx=setenvs(tmp) system(pfx .. cmd) setenvs(prv)\n\
 -- or system(cmd,tmpenv)\n\
 function setenvs( env )\n\
 	local prv = {}\n\
 	local pfx = ''\n\
 	local set = Lu.nsys.shset\n\
-	if not env then\n\
-		return {}, {}, ''\n\
+	if type(env) ~= 'table' then\n\
+		return ''\n\
 	end\n\
 	for key,val in pairs(env) do\n\
-		prv[key] = getenv(key)\n\
-		setenv(key,val)\n\
 		pfx = pfx .. set .. key .. '=' .. val .. '\\n'\n\
 	end\n\
-	return env, prv, pfx\n\
+	return pfx\n\
 end\n\
 function literalize(str)\n\
     return str:gsub('[%(%)%.%%%+%-%*%?%[%]%^%$]', '%%%0')\n\
@@ -84,22 +82,6 @@ function setsep(path)\n\
 		return ''\n\
 	end\n\
 	return path:gsub('/',Lu.dirsep)\n\
-end\n\
-function system(command,tmpenv)\n\
-	local name = os.tmpname() .. '_txt'\n\
-	local env,prv,pfx = setenvs(tmpenv)\n\
-	name = Lu.getcwd() .. '/' .. name:gsub('[/\\\\]','_')\n\
-	--command = pfx .. command .. ' > \"' .. setsep(name) .. '\"'\n\
-	command = pfx .. command .. '2>1'\n\
-	print( command )\n\
-	local r = Lu.system( command )\n\
-	if (Lu.access(name,0)~=0) then setenv(prv) return r end\n\
-	for line in io.lines(name) do\n\
-		print(line)\n\
-	end\n\
-	os.remove(name)\n\
-	setenv(prv)\n\
-	return (r or 1)\n\
 end\n\
 function escchar(text,char)\n\
 	return text:gsub('%'..char,'%%'..char)\n\
