@@ -37,7 +37,7 @@ static int LuDir_tostring( lua_State *L ) {
 static const luaL_Reg LuDirIndex[] = {
 	{ "next", LuDir_next },
 	{ "shut", LuDir_gc },
-{ NULL } };
+{ NULL, NULL } };
 static int LuDir_index( lua_State *L ) {
 	LuDir_t *d = (LuDir_t*)luaL_checkudata(L,1,LUDIR_META);
 	int type = lua_type(L,2);
@@ -104,7 +104,7 @@ static const luaL_Reg LuDirReg[] = {
 	{ "__gc", LuDir_gc },
 	{ "__tostring", LuDir_tostring },
 	{ "__index", LuDir_index },
-{ NULL } };
+{ NULL, NULL } };
 int LuDir_register( lua_State *L ) {
 	int result = LuRegisterClass( L, LUDIR_META, LuDirReg );
 	if ( result != 0 ) return result;

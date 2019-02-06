@@ -49,7 +49,7 @@ static const luaL_Reg LuFileIndex[] = {
 	{ "readout", LuFile_readout },
 	{ "writein", LuFile_writein },
 	{ "shut", LuFile_gc },
-{ NULL } };
+{ NULL, NULL } };
 static int LuFile_index( lua_State *L ) {
 	LuFile_t *f = (LuFile_t*)luaL_checkudata(L,1,LUFILE_META);
 	int type = lua_type(L,2);

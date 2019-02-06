@@ -45,8 +45,8 @@ int LuRegisterClass( lua_State *L, const char *name, const luaL_Reg *methods );
 int bail_bootup( int code, bool useExit, char *msg );
 int bail_script( lua_State *L, int code, bool useExit, char *msg );
 
-char const * const lu_getstring( lua_State *L, int pos );
-char const * const lu_getlstring( lua_State *L, int pos, size_t *len );
+char const * lu_getstring( lua_State *L, int pos );
+char const * lu_getlstring( lua_State *L, int pos, size_t *len );
 lua_Number lu_getnumber( lua_State *L, int pos );
 lua_Integer lu_getinteger( lua_State *L, int pos );
 bool lu_getboolean( lua_State *L, int pos );

@@ -1,10 +1,4 @@
 #include "lu.h"
-/* Single line for quick copy into Geany command parameter
-O:/Common/lu32/lu32
-O:/Common/lu64/lu64
-O:/Common/MinGW\bin/gcc" -Wall -mconsole -mwindows -m32 -I "O:/Common/lua64-53/include" "O:/Common/lua64-53/lua53.dll" lu.c -o "O:/Common/lu32/lu32.exe"
-O:/Common/MinGW\bin/gcc" -Wall -mconsole -mwindows -m64 -I "O:/Common/lua64-53/include" "O:/Common/lua64-53/lua53.dll" lu.c -o "O:/Common/lu64/lu64.exe"
-*/
 
 int bail_bootup( int code, bool useExit, char *msg ) {
 	if ( code == 0 ) return 0;
@@ -80,10 +74,10 @@ static int option_undefine( lua_State *L, char *opt, char *val ) {
 	return bail_bootup( errno, 0, "Name Error, errno =" );
 }
 static option_t options[] = {
-	{ 'f', "file", option_file },
-	{ 'e', "execute", option_execute },
-	{ 'D', "define", option_define },
-	{ 'U', "undefined", option_undefine },
+	{ 'f', "file", option_file, "-f MAKEFILE" },
+	{ 'e', "execute", option_execute, "-e \"LUA\"" },
+	{ 'D', "define", option_define, "-D VAR[=VAL]" },
+	{ 'U', "undefined", option_undefine, " -U VAR" },
 {0} };
 int parseoptions( lua_State *L, int argc, char *argv[] ) {
 	int a = 0, p;
@@ -163,12 +157,12 @@ int main( int argc, char *argv[] ) {
 	return result;
 }
 
-char const * const lu_getstring( lua_State *L, int pos ) {
+char const * lu_getstring( lua_State *L, int pos ) {
 	if ( lua_isstring(L,pos) )
 		return lua_tostring(L,pos);
 	return NULL;
 }
-char const * const lu_getlstring( lua_State *L, int pos, size_t *len ) {
+char const * lu_getlstring( lua_State *L, int pos, size_t *len ) {
 	if ( lua_isstring(L,pos) )
 		return luaL_tolstring(L,pos,len);
 	if ( len ) *len = 0;
@@ -350,7 +344,7 @@ int Lu_Stat( lua_State *L, struct stat data, int code ) {
 }
 int LuStat( lua_State *L ) {
 	char const * const path = lu_getstring(L,1);
-	struct stat data;
+	struct stat data = {0};
 	int code = path ? stat( path, &data ) : EINVAL;
 	return Lu_Stat( L, data, code );
 }
@@ -519,8 +513,7 @@ static const luaL_Reg LuReg[] = {
 	{ "strcmp", LuStrCmp },
 	{ "stat", LuStat },
 	{ "copy", LuCopy },
-	{ NULL }
-};
+{ NULL, NULL } };
 
 int Lu_register( lua_State *L ) {
 	int r = LuRegisterClass( L, "Lu", LuReg );
